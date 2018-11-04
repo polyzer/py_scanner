@@ -2,7 +2,7 @@ import logging, queue
 from datetime import datetime
 from time import strftime
 from .scanner_thread import ScannerThread
-from scapy.os import *
+from scapy.all import *
 class PyScanner:
     def __init__(self, params_names={"-threads":5, "-ip": "127.0.0.1"}):
         # print("ok")
@@ -27,10 +27,14 @@ class PyScanner:
     def checkhost(self, ip="127.0.0.1"):
        # conf.verb = 0
         print(dir(scapy))
-        try:
-            print(ip)
-            ping = sr1(IP(dst = ip)/ICMP())
-            print("\n[*] Target is up, Beginning scanning...")
-        except Exception:
-            print("\nCouldn't resolve Target: %s((", ip)
-            print(Exception)
+        a=send(IP(ttl=10, dst=ip)/ICMP())
+        print(a)
+        print("\n[*] Target is up, Beginning scanning...")
+
+        # try:
+        #     a=send(IP(ttl=10, dst=ip)/ICMP())
+        #     print(a)
+        #     print("\n[*] Target is up, Beginning scanning...")
+        # except Exception:
+        #     print("\nCouldn't resolve Target: %s((", ip)
+        #     print(Exception)
