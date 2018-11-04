@@ -12,8 +12,11 @@ class PyScanner:
         num_of_ports = 65535 # count of ports, that we will check 
         self.checkhost(params_names["-ip"]) #checking of our hosts
         
-        self.work_queue = queue.Queue(1)
-
+        #now we will calculate 
+        self.lock = threading.Lock()
+        self.queue = queue.Queue()
+        self.calcTasks(threads_num=threads_count, queue=self.queue)
+        #timer, that we will use to get speed
         start_clock = datetime.now()
         self.threads = []
         for i in range(params_names["-threads"]):
@@ -24,9 +27,18 @@ class PyScanner:
         for th in self.threads:
             th.join()
 
+    def calcTasks(self, threads_num=1, ports="0-65536", queue):
+        ports = ports.split(",")
+        ports_pairs = []
+        for item in ports:
+            pp = item.split("-")
+            ports_pairs.append(pp)
+        print(ports_pairs)    
+
+
     def checkhost(self, ip="127.0.0.1"):
        # conf.verb = 0
-        print(dir(scapy))
+        a 
         a=send(IP(ttl=10, dst=ip)/ICMP())
         print(a)
         print("\n[*] Target is up, Beginning scanning...")
@@ -38,3 +50,4 @@ class PyScanner:
         # except Exception:
         #     print("\nCouldn't resolve Target: %s((", ip)
         #     print(Exception)
+    
