@@ -13,4 +13,4 @@ for key in args_names.keys():
         args_names[key] = sys.argv[idx] if idx < len(sys.argv) else -1
 
 print(args_names)
-scanner = py_scanner.PyScanner(args_names)
+scanner = py_scanner.PyScanner(args_names   )
