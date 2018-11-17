@@ -3,6 +3,7 @@ from datetime import datetime
 from time import strftime
 from .scanner_thread import ScannerThread
 from scapy.all import *
+
 class PyScanner:
     def __init__(self, params_names={"-threads":5, "-ip": "127.0.0.1"}):
         # print("ok")
@@ -27,7 +28,7 @@ class PyScanner:
         for th in self.threads:
             th.join()
 
-    def calcTasks(self, threads_num=1, ports="0-65536", queue):
+    def calcTasks(self, threads_num=1, ports="0-65536", queue=[]):
         ports = ports.split(",")
         ports_pairs = []
         for item in ports:
