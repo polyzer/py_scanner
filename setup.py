@@ -3,7 +3,7 @@ import sys
 print(sys.argv)
 args_names = {
     "-ip": "192.168.0.1",
-    "-threads": 1,
+    "-threads": 4,
     "-ports": "0-1000"
 }
 

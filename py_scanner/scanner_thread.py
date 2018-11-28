@@ -1,9 +1,11 @@
 from scapy.all import *
 import threading
 class ScannerThread(threading.Thread):
-    def __init__(self, dest_ip="127.0.0.1", ports={"from":1, "to":2}, out_queue=[]):
+    def __init__(self, dest_ip="127.0.0.1", ports={"from":1, "to":2}, thread_num=0):
         threading.Thread.__init__(self)
 
+        self.thread_num = thread_num
+        self.dest_ip = dest_ip
         self.ports = ports
         self.ReturnObject=[] # there we will put {'port': port, 'res': res}
   
@@ -12,11 +14,12 @@ class ScannerThread(threading.Thread):
     
     def run(self):
         for port in range(self.ports["from"], self.ports["to"]):
-            print("running port: " + port)
-            res = scanport(ip_addr=self.dest_ip, port=port)
+            print("thread: " + str(self.thread_num) + " running port: " + str(port))
+            res = self.scanport(ip_addr=self.dest_ip, port=port)
             self.ReturnObject.append({'port': port, 'res': res})
+        
 
-    def scanport(ip_addr, port): # Function to scan a given port
+    def scanport(self, ip_addr, port): # Function to scan a given port
         try:
             srcport = RandShort() # Generate Port Number
             conf.verb = 0 # Hide output

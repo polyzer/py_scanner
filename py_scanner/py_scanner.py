@@ -14,28 +14,32 @@ class PyScanner:
         self.lock = threading.Lock()
         self.queue = queue.Queue()
         ports_pair = params_names["-ports"].split("-")
-        ports_pairs = self.calcTasks(threads_num=threads_count, ports=ports_pair)
+        ports_ranges = self.calcTasks(threads_num=threads_count, ports=ports_pair)
         #timer, that we will use to get speed
         start_clock = datetime.now()
         self.threads = []
         for i in range(params_names["-threads"]):
-            thread = ScannerThread(num=i)
+            thread = ScannerThread(dest_ip=params_names["-ip"], ports=ports_ranges[i], thread_num=i)
             self.threads.append(thread)
         for th in self.threads:
             th.start()
         for th in self.threads:
             th.join()
+        end_clock = datetime.now()
+
 
     def calcTasks(self, threads_num=1, ports=[0,65536], queue=[]):
+        [ports[0], ports[1]] = [int(ports[0]), int(ports[1])]
         ports_count_range = round((ports[1] - ports[0])/threads_num) #getting count of ports pairs
         ports_ranges = []
         last_from = ports[0]
         last_to = last_from + ports_count_range
         for i in range(threads_num):
-            ports = {"from": last_from, "to": last_to}
+            ports = {"from": last_from + 1, "to": last_to}
             ports_ranges.append(ports)
-            last_from = ports["to"]+1
+            last_from = ports["to"]
             last_to = last_from + ports_count_range
+        print("there is ports ranges")
         print(ports_ranges)    
         return ports_ranges
 
