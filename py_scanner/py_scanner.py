@@ -5,11 +5,12 @@ from .scanner_thread import ScannerThread
 from scapy.all import *
 
 class PyScanner:
-    def __init__(self, params_names={"-threads":5, "-ip": "127.0.0.1", "-ports":"0-100"}):
+    def __init__(self, params_names={"-threads":5, "-ip": "127.0.0.1", "-ports":"0-100", "-scan_type": "S"}):
         # print("ok")
         # print(dir(queue))
         params_names["-threads"]=int(params_names["-threads"])
         threads_count = params_names["-threads"]
+        scan_type = params_names["-scan_type"]
        #now we will calculate 
         self.lock = threading.Lock()
         self.queue = queue.Queue()
@@ -19,7 +20,7 @@ class PyScanner:
         start_clock = datetime.now()
         self.threads = []
         for i in range(params_names["-threads"]):
-            thread = ScannerThread(dest_ip=params_names["-ip"], ports=ports_ranges[i], thread_num=i)
+            thread = ScannerThread(dest_ip=params_names["-ip"], ports=ports_ranges[i], thread_num=i, scan_type = scan_type)
             self.threads.append(thread)
         for th in self.threads:
             th.start()
