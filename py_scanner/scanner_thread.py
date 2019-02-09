@@ -1,5 +1,7 @@
-from scapy.all import *
 import threading
+import socket
+from scapy.all import *
+
 class ScannerThread(threading.Thread):
     def __init__(self, dest_ip="127.0.0.1", ports={"from":1, "to":2}, thread_num=0, scan_type="S"):
         threading.Thread.__init__(self)
@@ -13,9 +15,25 @@ class ScannerThread(threading.Thread):
         self.SYNACK = 0x12 # Set flag values for later reference
         self.RSTACK = 0x14
     
+    def incoming(self, host, port):
+        """Open specified port and return file-like object"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # set SOL_SOCKET.SO_REUSEADDR=1 to reuse the socket if
+        # needed later without waiting for timeout (after it is
+        # closed, for example)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((host, port))
+        sock.listen(0)   # do not queue connections
+        request, addr = sock.accept()
+        filestrings = request.makefile('r', 0)
+        for line in filestrings:
+            print(line)
+        # /-- network ---
+
     def run(self):
         if self.scanning_type == "S":
             for port in range(self.ports["from"], self.ports["to"]):
+                print("dest_ip: %s, port: %s", (self.dest_ip, port))
                 res = self.SYNscan(ip_addr=self.dest_ip, port=port)
                 print("thread: " + str(self.thread_num) + " running port: " + str(port) + "SYNres: " + str(res))
         if self.scanning_type == "F":
@@ -35,6 +53,7 @@ class ScannerThread(threading.Thread):
             SYNACKpkt = sr1(IP(dst = ip_addr)/TCP(sport = srcport, dport = port, flags = "S")) # Send SYN and recieve RST-ACK or SYN-ACK
             pktflags = SYNACKpkt.getlayer(TCP).flags # Extract flags of recived packet
             if pktflags == self.SYNACK: # Cross reference Flags
+                #self.incoming(ip_addr, port)
                 return True # If open, return true
             else:
                 return False # If closed, return false
@@ -58,6 +77,7 @@ class ScannerThread(threading.Thread):
             #print(fin_scan_resp)
             if (str(type(fin_scan_resp))=="<type 'NoneType'>"):
                 #print("Open|Filtered")
+                #self.incoming(ip_addr, port)
                 return "Open|Filtered"
             if(fin_scan_resp.getlayer(TCP).flags == 0x14):
                # print("Closed")
@@ -82,6 +102,7 @@ class ScannerThread(threading.Thread):
                 
             null_scan_resp = sr1(IP(dst=ip_addr)/TCP(dport=port,flags=""),timeout=2)
             if (str(type(null_scan_resp))=="<type 'NoneType'>"):
+                self.incoming(ip_addr, port)
                 print("Open|Filtered")
             if(null_scan_resp.getlayer(TCP).flags == 0x14):
                # print("Closed")

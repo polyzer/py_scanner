@@ -27,7 +27,7 @@ except KeyboardInterrupt: # In case the user wants to quit
 
 ports = range(int(min_port), int(max_port)+1) # Build range from given port numbers
 start_clock = datetime.now() # Start clock for scan time
-SYNACK = 0x12 # Set flag values for later reference
+SYNACK = 0x12 # Set flag values for later rels ference
 RSTACK = 0x14
 
 def checkhost(ip): # Function to check if target is up

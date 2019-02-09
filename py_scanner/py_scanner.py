@@ -1,5 +1,6 @@
 import logging, queue
 from datetime import datetime
+import threading
 from time import strftime
 from .scanner_thread import ScannerThread
 from scapy.all import *
