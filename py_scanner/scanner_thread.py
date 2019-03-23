@@ -16,24 +16,37 @@ class ScannerThread(threading.Thread):
         self.RSTACK = 0x14
     
     def incoming(self, host, port):
-        """Open specified port and return file-like object"""
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # set SOL_SOCKET.SO_REUSEADDR=1 to reuse the socket if
-        # needed later without waiting for timeout (after it is
-        # closed, for example)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((host, port))
-        sock.listen(0)   # do not queue connections
-        request, addr = sock.accept()
-        filestrings = request.makefile('r', 0)
-        for line in filestrings:
-            print(line)
+        # """Open specified port and return file-like object"""
+        # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # # set SOL_SOCKET.SO_REUSEADDR=1 to reuse the socket if
+        # # needed later without waiting for timeout (after it is
+        # # closed, for example)
+        # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # sock.bind((host, port))
+        # sock.listen(0)   # do not queue connections
+        # conn, addr = sock.accept()
+        # with conn:
+        #     print('Connected by', addr)
+        #     sock.sendall("GET / HTTP/1.1\r\n\r\n")
+        #     while True:
+        #         data = conn.recv(1024)
+        #         if not data:
+        #             break
+        #         print(data)
+        #         #conn.sendall(data)
+        # sock.close()
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+            s.sendall(b'GET / HTTP/1.1\r\n\r\n')
+            data = s.recv(1024)
+            print(data)
+            s.close()
         # /-- network ---
 
     def run(self):
         if self.scanning_type == "S":
             for port in range(self.ports["from"], self.ports["to"]):
-                print("dest_ip: %s, port: %s", (self.dest_ip, port))
                 res = self.SYNscan(ip_addr=self.dest_ip, port=port)
                 print("thread: " + str(self.thread_num) + " running port: " + str(port) + "SYNres: " + str(res))
         if self.scanning_type == "F":
@@ -48,12 +61,11 @@ class ScannerThread(threading.Thread):
 
     def SYNscan(self, ip_addr, port): # Function to scan a given port
         try:
-            srcport = RandShort() # Generate Port Number
-            conf.verb = 0 # Hide output
-            SYNACKpkt = sr1(IP(dst = ip_addr)/TCP(sport = srcport, dport = port, flags = "S")) # Send SYN and recieve RST-ACK or SYN-ACK
+            #srcport = RandShort() # Generate Port Number
+            SYNACKpkt = sr1(IP(dst = ip_addr)/TCP( dport = port, flags = "S")) # Send SYN and recieve RST-ACK or SYN-ACK
             pktflags = SYNACKpkt.getlayer(TCP).flags # Extract flags of recived packet
             if pktflags == self.SYNACK: # Cross reference Flags
-                #self.incoming(ip_addr, port)
+                self.incoming(ip_addr, port)
                 return True # If open, return true
             else:
                 return False # If closed, return false
@@ -70,14 +82,12 @@ class ScannerThread(threading.Thread):
 
     def FINscan(self, ip_addr, port): # Function to scan a given port
         try:
-            srcport = RandShort() # Generate Port Number
-            conf.verb = 0 # Hide output
-     
+            srcport = RandShort() # Generate Port Number     
             fin_scan_resp = sr1(IP(dst=ip_addr)/TCP(dport=port,flags="F"))
             #print(fin_scan_resp)
             if (str(type(fin_scan_resp))=="<type 'NoneType'>"):
                 #print("Open|Filtered")
-                #self.incoming(ip_addr, port)
+                self.incoming(ip_addr, port)
                 return "Open|Filtered"
             if(fin_scan_resp.getlayer(TCP).flags == 0x14):
                # print("Closed")
@@ -98,7 +108,6 @@ class ScannerThread(threading.Thread):
     def NULLscan(self, ip_addr, port): # Function to scan a given port
         try:
             srcport = RandShort() # Generate Port Number
-            conf.verb = 0 # Hide output
                 
             null_scan_resp = sr1(IP(dst=ip_addr)/TCP(dport=port,flags=""),timeout=2)
             if (str(type(null_scan_resp))=="<type 'NoneType'>"):
