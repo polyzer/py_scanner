@@ -4,6 +4,9 @@ from scapy.all import *
 
 class ScannerThread(threading.Thread):
     def __init__(self, dest_ip="127.0.0.1", ports={"from":1, "to":2}, thread_num=0, scan_type="S"):
+        self._stopevent = threading.Event(  )
+        self._sleepperiod = 1.0
+
         threading.Thread.__init__(self)
 
         self.scanning_type = scan_type
@@ -57,7 +60,11 @@ class ScannerThread(threading.Thread):
            for port in range(self.ports["from"], self.ports["to"]):
                 res = self.NULLscan(ip_addr=self.dest_ip, port=port)
                 print("thread: " + str(self.thread_num) + " running port: " + str(port) + "NULLres: " + str(res))
-                             
+        exit()
+    def join(self, timeout=None):
+        """ Stop the thread. """
+        self._stopevent.set(  )
+        threading.Thread.join(self, timeout)
 
     def SYNscan(self, ip_addr, port): # Function to scan a given port
         try:

@@ -25,7 +25,6 @@ class PyScanner:
             self.threads.append(thread)
         for th in self.threads:
             th.start()
-        for th in self.threads:
             th.join()
         end_clock = datetime.now()
 
